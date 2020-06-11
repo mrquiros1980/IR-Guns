@@ -1,32 +1,193 @@
 #include <Arduino.h>
+#include "IRremote.h"
+#include "CppList.h"
+
+bool _initialized = false;
+
+int rcv_count;
+IRrecv **all_rcv;
+
+void setup() {
+  if (_initialized) return;
+  
+  Serial.begin(9600);
+  
+  rcv_count = 3;
+  all_rcv = (IRrecv **)malloc(rcv_count*sizeof(int));
+  all_rcv[0] = new IRrecv(2);
+  all_rcv[1] = new IRrecv(3);
+  all_rcv[2] = new IRrecv(4);
+  
+  for (int i=0; i<rcv_count; ++i){
+    all_rcv[i]->enableIRIn();
+  }
+  
+  _initialized = true;
+}
+
+void loop() {
+  for (int i=0; i<rcv_count; ++i){
+    decode_results results;
+    if (all_rcv[i]->decode(&results)) {
+      int btn = DecodeButton(results.value);
+      Serial.print("Rcv_");
+      Serial.print(i);
+      Serial.print(":");
+      Serial.println(btn);
+      all_rcv[i]->resume();
+    }
+  }
+}
+
+const int BTN_EMPTY = 0;
+const int BTN_POWER = 99;
+const int BTN_0 = 10;
+const int BTN_1 = 1;
+const int BTN_2 = 2;
+const int BTN_3 = 3;
+const int BTN_4 = 4;
+const int BTN_5 = 5;
+const int BTN_STOP = 6;
+const int BTN_DOWN = 7;
+const int BTN_UP = 8;
+const int BTN_BACK = 9;
+const int BTN_FWD = 11;
+const int BTN_EQ = 12;
+const int BTN_REPEAT = 100;
+const int BTN_UNKNOWN = 101;
+const int BTN_ERROR = 102;
+
+int DecodeButton(int param){
+	int rez = BTN_UNKNOWN;
+	switch (param){
+	case 0x0: {
+						rez = BTN_ERROR;
+						break;
+			  }
+	case 0x00FD00FF:
+	case 0x00FF728D:
+	case 0x20DF4EB1: {
+						rez = BTN_POWER;
+						break;
+					 }
+	case 0x00FD30CF:{
+						rez = BTN_0;
+						break;
+					}
+	case 0x00FD08F7:{
+						rez = BTN_1;
+						break;
+					}
+	case 0x00FD8877:{
+						rez = BTN_2;
+						break;
+					}
+	case 0x00FD48B7:{
+						rez = BTN_3;
+						break;
+					}
+	case 0x00FD28D7:{
+						rez = BTN_4;
+						break;
+					}
+	case 0x00FDA857:{
+						rez = BTN_5;
+						break;
+					}
+	case 0x00FD40BF:{
+						rez = BTN_STOP;
+						break;
+					}
+	case 0x00FD10EF:{
+						rez = BTN_DOWN;
+						break;
+					}
+	case 0x00FD50AF:{
+						rez = BTN_UP;
+						break;
+					}
+	case 0x00FD20DF:{
+						rez = BTN_BACK;
+						break;
+					}
+	case 0x00FD609F:{
+						rez = BTN_FWD;
+						break;
+					}
+	case 0x00FDB04F:{
+						rez = BTN_EQ;
+						break;
+					}
+	case 0xFFFFFFFF:{
+						rez = BTN_REPEAT;
+						break;
+					}
+	}
+	return rez;
+}
+
+
+/*
 #include <IRremote.h>
 #include <Servo.h>
 
-const byte servoPin = 9;
-const int RECV_PIN = 6;
-IRrecv irrecv(RECV_PIN);
-decode_results results;
+const byte servo1Pin = 9;
+const byte servo2Pin = 10;
+const int RECV_PIN1 = 5;
+const int RECV_PIN2 = 6;
 
-Servo servo; // Crea objeto Servo
+IRrecv irrecv1(RECV_PIN1);
+IRrecv irrecv2(RECV_PIN2);
+decode_results results1;
+decode_results results2;
+
+Servo servo1; // Crea objeto Servo
+Servo servo2;
+
+unsigned long now1;
+unsigned long now2;
+
+int interval = 2000;
 
 void setup(){
-  pinMode(servoPin, OUTPUT);
-  servo.attach(servoPin);
-  servo.write(90);
+  pinMode(servo1Pin, OUTPUT);
+  pinMode(servo2Pin, OUTPUT);
+  pinMode(RECV_PIN1, INPUT);
+  pinMode(RECV_PIN2, INPUT);
+
+  servo1.attach(servo1Pin);
+  servo1.write(0);
+  servo2.attach(servo2Pin);
+  servo2.write(0);
   Serial.begin(9600);
-  irrecv.enableIRIn();
+  irrecv1.enableIRIn();
+  irrecv2.enableIRIn();
 }
 
 void loop(){
-  if (irrecv.decode(&results)){
-        Serial.println(results.value, HEX);
-        Serial.println("Impacto!");
-        
-        
-        servo.write(180);
-        delay(2000);
-        servo.write(90);
-        irrecv.resume();
+  if (irrecv1.decode(&results1)){
+        Serial.println(results1.value, HEX);
+        Serial.println("Impacto en 1!");
+        irrecv1.resume();
+        servo1.write(180);
+        now1 = millis();
   }
-  
-}
+  delay(25);
+
+   if (irrecv2.decode(&results2)){
+        Serial.println(results2.value, HEX);
+        Serial.println("Impacto en 2!");
+        irrecv2.resume();
+        servo2.write(180);
+        now2 = millis();
+  }
+
+    if((millis() - now1) > interval){
+      servo1.write(0);
+    }
+
+    if((millis() - now2) > interval){
+      servo2.write(0);
+    }
+
+}*/
