@@ -51,14 +51,14 @@ void loop() {
       
       Serial.println("Impacto en 1!!");
       all_rcv[0]->resume();
-      servo1.write(180);
+      servo1.write(90);
       now1 = millis();
   }
 
   if (all_rcv[1]->decode(&results)) {
       Serial.println("Impacto en 2!!");
       all_rcv[1]->resume();
-      servo2.write(180);
+      servo2.write(80);
       now2 = millis();
   }
 
